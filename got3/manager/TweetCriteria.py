@@ -30,3 +30,7 @@ class TweetCriteria:
 	def setTopTweets(self, topTweets):
  		self.topTweets = topTweets
  		return self
+
+	def setWithin(self, within):
+		self.within = within
+		return self
