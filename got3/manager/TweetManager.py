@@ -34,9 +34,9 @@ class TweetManager:
 			for tweetHTML in tweets:
 				tweetPQ = PyQuery(tweetHTML)
 				tweet = models.Tweet()
-				
 				usernameTweet = tweetPQ("span.username.js-action-profile-name b").text()
-				txt = re.sub(r"\s+", " ", tweetPQ("p.js-tweet-text").text().replace('# ', '#').replace('@ ', '@'))
+				raw_txt = re.sub(r"\s+", " ", tweetPQ("p.js-tweet-text").text())
+				txt = raw_txt.replace('#', '# ').replace('@', '@ ')
 				retweets = int(tweetPQ("span.ProfileTweet-action--retweet span.ProfileTweet-actionCount").attr("data-tweet-stat-count").replace(",", ""))
 				favorites = int(tweetPQ("span.ProfileTweet-action--favorite span.ProfileTweet-actionCount").attr("data-tweet-stat-count").replace(",", ""))
 				dateSec = int(tweetPQ("small.time span.js-short-timestamp").attr("data-time"))
@@ -58,13 +58,14 @@ class TweetManager:
 				tweet.permalink = 'https://twitter.com' + permalink
 				tweet.username = usernameTweet
 				
+				tweet.raw_txt = raw_txt
 				tweet.text = txt
 				tweet.date = datetime.datetime.fromtimestamp(dateSec)
 				tweet.formatted_date = datetime.datetime.fromtimestamp(dateSec).strftime("%a %b %d %X +0000 %Y")
 				tweet.retweets = retweets
 				tweet.favorites = favorites
-				tweet.mentions = " ".join(re.compile('(@\\w*)').findall(tweet.text))
-				tweet.hashtags = " ".join(re.compile('(#\\w*)').findall(tweet.text))
+				tweet.mentions = " ".join(re.compile('@\\S+').findall(raw_txt))
+				tweet.hashtags = " ".join(re.compile('#\\S+').findall(raw_txt))
 				tweet.geo = geo
 				tweet.urls = ",".join(urls)
 				tweet.author_id = user_id
