@@ -3,24 +3,47 @@ import got3 as got
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 import inquirer
 
-nfl_teams = {'Phoenix, AZ': 'Cardinals', 'Falcons': 'Atlanta, GA', 'Baltimore, MD': 'Ravens', 'Buffalo, NY': 'Bills',
-'Charlotte, NC':'Panthers', 'Chicago, IL': 'Bears', 'Cincinnati, OH': 'Bengals', 'Cleveland, OH': 'Browns',
-'Dallas, TX' : 'Cowboys', 'Denver, CO': 'Broncos', 'Detroit, MI': 'Lions', 'Green Bay, WI': 'Packers',
-'Houston, TX': 'Texans', 'Indianapolis, IN': 'Colts', 'Jacksonville, FL': 'Jaguars', 'Kansas City, MO': 'Chiefs',
-'Los Angeles, CA': 'Chargers', 'Los Angeles, CA': 'Rams', 'Miami, FL': 'Dolphins', 'Minnesota': 'Vikings',
-'Boston, MA': 'Patriots', 'New Orleans, LA': 'Saints', 'New York, NY': 'Giants', 'New York, NY': 'Jets',
-'Oakland, CA': 'Raiders', 'Philadelphia, PA': 'Eagles', 'Pittsburgh, PA': 'Steelers', 'San Francisco, CA': '49ers',
-'Seattle, WA': 'Seahawks', 'Tampa Bay, FL': 'Buccaneers', 'Nashville, TN': 'Titans', 'Washington, D.C.': 'Redskins'}
+nfl_teams = {'Cardinals': 'Phoenix, AZ',
+            'Atlanta, GA': 'Falcons',
+            'Ravens': 'Baltimore, MD',
+            'Bills': 'Buffalo, NY',
+            'Panthers': 'Charlotte, NC',
+            'Bears': 'Chicago, IL',
+            'Bengals': 'Cincinnati, OH',
+            'Browns': 'Cleveland, OH',
+            'Cowboys': 'Dallas, TX',
+            'Broncos': 'Denver, CO',
+            'Lions': 'Detroit, MI',
+            'Packers': 'Green Bay, WI',
+            'Texans': 'Houston, TX',
+            'Colts': 'Indianapolis, IN',
+            'Jaguars': 'Jacksonville, FL',
+            'Chiefs': 'Kansas City, MO',
+            'Rams': 'Los Angeles, CA',
+            'Dolphins': 'Miami, FL',
+            'Vikings': 'Minnesota',
+            'Patriots': 'Boston, MA',
+            'Saints': 'New Orleans, LA',
+            'Jets': 'New York, NY',
+            'Raiders': 'Oakland, CA',
+            'Eagles': 'Philadelphia, PA',
+            'Steelers': 'Pittsburgh, PA',
+            '49ers': 'San Francisco, CA',
+            'Seahawks': 'Seattle, WA',
+            'Buccaneers': 'Tampa Bay, FL',
+            'Titans': 'Nashville, TN',
+            'Redskins': 'Washington, D.C.'}
 
 team = [
   inquirer.List('team',
                 message="Which team do you want sentiment stats for?",
-                choices=nfl_teams.values(),
+                choices=nfl_teams.keys(),
             ),
 ]
 team_selection = inquirer.prompt(team)
 start_date = input("What start date? (eg. format 01-30-2019)")
 end_date = input("What end date? (eg. format 01-30-2019)")
+location = nfl_teams[team_selection]
 
 def get_tweets(start_date, end_date, team_name, location):
     """
@@ -51,4 +74,26 @@ def get_sentiment(tweets):
     return (round((total_score['Positive']/sum(total_score.values())) * 100, 2), 
            round((total_score['Negative']/sum(total_score.values())) * 100, 2))
 
-def create_csv()
+def date_range(date1, date2):
+    """
+    """
+    dt1 = datetime.strptime(date1, '%Y-%m-%d') 
+    dt2 = datetime.strptime(date2, '%Y-%m-%d') 
+    for n in range(int((dt2 - dt1).days) + 1):
+        yield dt1 + timedelta(n)
+        
+def create_date_tuples(date1, date2):
+    """
+    """
+    from_date = [dt.strftime("%Y-%m-%d") 
+                    for dt in date_range(date1, date2)]
+
+    to_date = [dt.strftime("%Y-%m-%d") 
+                    for dt in date_range((datetime.strptime(date1, '%Y-%m-%d')\
+                                        + timedelta(days=1)).strftime("%Y-%m-%d")
+                                        ,(datetime.strptime(date2, '%Y-%m-%d')\
+                                         + timedelta(days=1)).strftime("%Y-%m-%d"))]
+
+    return list(zip(from_date, to_date))
+
+
