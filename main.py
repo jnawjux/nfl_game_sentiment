@@ -1,10 +1,11 @@
 import pandas as pd
 import got3 as got
+from datetime import datetime, timedelta
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 import inquirer
 
 nfl_teams = {'Cardinals': 'Phoenix, AZ',
-            'Atlanta, GA': 'Falcons',
+            'Falcons': 'Atlanta, GA',
             'Ravens': 'Baltimore, MD',
             'Bills': 'Buffalo, NY',
             'Panthers': 'Charlotte, NC',
@@ -41,9 +42,10 @@ team = [
             ),
 ]
 team_selection = inquirer.prompt(team)
-start_date = input("What start date? (eg. format 01-30-2019)")
-end_date = input("What end date? (eg. format 01-30-2019)")
-location = nfl_teams[team_selection]
+start_date = input("What start date? (eg. format 2019-01-30):  ")
+end_date = input("What end date? (eg. format 2019-02-30):  ")
+team_choice = team_selection['team']
+location = nfl_teams[team_choice]
 
 def get_tweets(start_date, end_date, team_name, location):
     """
@@ -55,7 +57,7 @@ def get_tweets(start_date, end_date, team_name, location):
                    .setUntil(end_date)\
                    .setWithin(location)\
                    .setTopTweets(True)\
-                   .setMaxTweets(25)
+                   .setMaxTweets(2000)
  
     return got.manager.TweetManager.getTweets(tweetCriteria)
 
@@ -76,6 +78,7 @@ def get_sentiment(tweets):
 
 def date_range(date1, date2):
     """
+    Return all the dates between two given dates
     """
     dt1 = datetime.strptime(date1, '%Y-%m-%d') 
     dt2 = datetime.strptime(date2, '%Y-%m-%d') 
@@ -84,6 +87,7 @@ def date_range(date1, date2):
         
 def create_date_tuples(date1, date2):
     """
+    Return list of tuples with start and end dates
     """
     from_date = [dt.strftime("%Y-%m-%d") 
                     for dt in date_range(date1, date2)]
@@ -96,4 +100,18 @@ def create_date_tuples(date1, date2):
 
     return list(zip(from_date, to_date))
 
+def create_csv(start_date, end_date, team_name, location):
+    """
+    Create and export sentiment data to CSV
+    """
+    file = open('sentiment_stats.csv','w')
+    file.write('date,pos,neg\n')
+    date_range_list = create_date_tuples(start_date, end_date)
+    for day in date_range_list:
+        day_tweets = get_tweets(day[0], day[1], team_name, location)
+        day_sentiment = get_sentiment(day_tweets)
+        file.write(f"{day[0]},{day_sentiment[0]},{day_sentiment[1]}")
+        file.write('\n')
+    file.close()
 
+create_csv(start_date, end_date, team_choice, location)
